@@ -8,7 +8,6 @@ import space from 'app/styles/space';
 import SelectField from 'app/views/settings/components/forms/selectField';
 import TextField from 'app/views/settings/components/forms/textField';
 
-import LegacyBrowsersField from './legacyBrowsersField';
 import {Category} from './utils';
 
 type Condition = {
@@ -72,9 +71,6 @@ function ConditionFields({
                 <IconDelete aria-label={t('Delete Condition')} />
               </IconDeleteWrapper>
             </Fields>
-            {category === Category.LEGACY_BROWSERS && (
-              <LegacyBrowsersField onToggle={() => {}} onToggleAll={() => {}} />
-            )}
           </div>
         );
       })}

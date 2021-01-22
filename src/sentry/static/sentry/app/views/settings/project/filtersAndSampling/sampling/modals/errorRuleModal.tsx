@@ -8,12 +8,6 @@ type Props = Form['props'];
 type State = Form['state'];
 
 class ErrorRuleModal extends Form<Props, State> {
-  getDefaultState() {
-    return {
-      ...super.getDefaultState(),
-    };
-  }
-
   getModalTitle() {
     return t('Add a custom rule for errors');
   }
