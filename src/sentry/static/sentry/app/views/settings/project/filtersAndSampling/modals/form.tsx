@@ -8,10 +8,22 @@ import {Organization} from 'app/types';
 import {DynamicSamplingRule} from 'app/types/dynamicSampling';
 import {defined} from 'app/utils';
 import NumberField from 'app/views/settings/components/forms/numberField';
+import RadioField from 'app/views/settings/components/forms/radioField';
 
-import Condition from './condition';
+import ConditionFields from './conditionFields';
+import {Category} from './utils';
 
-type Conditions = React.ComponentProps<typeof Condition>['conditions'];
+enum Transaction {
+  ALL = 'all',
+  MATCH_CONDITIONS = 'match-conditions',
+}
+
+const transactionChoices = [
+  [Transaction.ALL, t('All')],
+  [Transaction.MATCH_CONDITIONS, t('Match Conditions')],
+] as Array<[string, string]>;
+
+type Conditions = React.ComponentProps<typeof ConditionFields>['conditions'];
 
 type Props = ModalRenderProps & {
   organization: Organization;
@@ -20,7 +32,7 @@ type Props = ModalRenderProps & {
 };
 
 type State = {
-  tracing: boolean;
+  transaction: Transaction;
   conditions: Conditions;
   sampleRate?: number;
 };
@@ -31,19 +43,34 @@ class Form<P extends Props = Props, S extends State = State> extends React.Compo
 > {
   state = this.getDefaultState() as Readonly<S>;
 
-  //   componentDidUpdate(_prevProps: P, prevState: S) {
-  //     if (
-  //       prevState.transactions === Transaction.ALL &&
-  //       this.state.transactions !== Transaction.ALL &&
-  //       !this.state.conditions.length
-  //     ) {
-  //       this.handleAddCondition();
-  //     }
-  //   }
+  componentDidUpdate(_prevProps: P, prevState: S) {
+    if (
+      prevState.transaction === Transaction.ALL &&
+      this.state.transaction !== Transaction.ALL &&
+      !this.state.conditions.length
+    ) {
+      this.handleAddCondition();
+    }
+  }
 
   getDefaultState(): State {
-    return {tracing: false, conditions: []};
+    return {
+      transaction: Transaction.ALL,
+      conditions: [],
+    };
   }
+
+  handleAddCondition = () => {
+    this.setState(prevState => ({
+      conditions: [
+        ...prevState.conditions,
+        {
+          category: Category.RELEASES,
+          match: '',
+        },
+      ],
+    }));
+  };
 
   handleChangeCondition = <T extends keyof Conditions[0]>(
     index: number,
@@ -52,6 +79,20 @@ class Form<P extends Props = Props, S extends State = State> extends React.Compo
   ) => {
     const newConditions = [...this.state.conditions];
     newConditions[index][field] = value;
+    this.setState({conditions: newConditions});
+  };
+
+  handleDeleteCondition = (index: number) => () => {
+    const newConditions = [...this.state.conditions];
+    newConditions.splice(index, 1);
+
+    if (!newConditions.length) {
+      this.setState({
+        conditions: newConditions,
+        transaction: Transaction.ALL,
+      });
+      return;
+    }
     this.setState({conditions: newConditions});
   };
 
@@ -71,17 +112,31 @@ class Form<P extends Props = Props, S extends State = State> extends React.Compo
 
   handleSubmitSuccess = () => {};
 
-  renderExtraFields(): React.ReactElement | null {
+  getModalTitle() {
+    return '';
+  }
+
+  geTransactionFieldDescription() {
+    return {
+      label: '',
+      help: '',
+    };
+  }
+
+  getExtraFields(): React.ReactElement | null {
     return null;
   }
 
-  renderModalTitle() {
-    return '';
+  getCategoryOptions(): Array<[string, string]> {
+    return [['', '']];
   }
 
   render() {
     const {Header, Body, closeModal, Footer} = this.props as Props;
-    const {sampleRate, conditions} = this.state;
+    const {sampleRate, conditions, transaction} = this.state;
+
+    const transactionField = this.geTransactionFieldDescription();
+    const categoryOptions = this.getCategoryOptions();
 
     const submitDisabled =
       !defined(sampleRate) ||
@@ -90,18 +145,31 @@ class Form<P extends Props = Props, S extends State = State> extends React.Compo
     return (
       <React.Fragment>
         <Header closeButton onHide={closeModal}>
-          {this.renderModalTitle()}
+          {this.getModalTitle()}
         </Header>
         <Body>
-          {this.renderExtraFields()}
-          {/* {transactions !== Transaction.ALL && (
-            <Condition
+          {this.getExtraFields()}
+          <RadioField
+            {...transactionField}
+            name="transaction"
+            choices={transactionChoices}
+            onChange={value => this.handleChange('transaction', value)}
+            value={transaction}
+            inline={false}
+            hideControlState
+            showHelpInTooltip
+            stacked
+          />
+          {transaction !== Transaction.ALL && (
+            <ConditionFields
               conditions={conditions}
+              categoryOptions={categoryOptions}
               onAdd={this.handleAddCondition}
               onChange={this.handleChangeCondition}
               onDelete={this.handleDeleteCondition}
+              // showLegacyBrowsersField={Category}
             />
-          )} */}
+          )}
           <NumberField
             label={t('Sampling Rate')}
             help={t('this is a description')}
