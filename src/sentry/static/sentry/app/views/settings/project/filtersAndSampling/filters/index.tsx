@@ -7,14 +7,16 @@ import {t} from 'app/locale';
 import FieldFromConfig from 'app/views/settings/components/forms/fieldFromConfig';
 import Form from 'app/views/settings/components/forms/form';
 import FormField from 'app/views/settings/components/forms/formField';
+import SettingsPageHeader from 'app/views/settings/components/settingsPageHeader';
+import TextBlock from 'app/views/settings/components/text/textBlock';
 
 import LegacyBrowser from './legacyBrowser';
 
 type FormFieldProps = React.ComponentProps<typeof FormField>;
 
 type Props = AsyncComponent['props'] & {
-  orgId: string;
-  projectId: string;
+  orgSlug: string;
+  projectSlug: string;
   hasAccess: boolean;
 };
 
@@ -23,9 +25,16 @@ type State = AsyncComponent['state'] & {
 };
 
 class Filters extends AsyncComponent<Props, State> {
+  getDefaultState() {
+    return {
+      ...super.getDefaultState(),
+      filterList: [],
+    };
+  }
+
   getEndpoints(): ReturnType<AsyncComponent['getEndpoints']> {
-    // TODO(PRISCILA): it will come soon
-    return [['', '']];
+    const {orgSlug, projectSlug} = this.props;
+    return [['filterList', `/projects/${orgSlug}/${projectSlug}/filters/`]];
   }
 
   handleLegacyChange = (
@@ -40,67 +49,79 @@ class Filters extends AsyncComponent<Props, State> {
   };
 
   renderBody() {
-    const {orgId, projectId, hasAccess} = this.props;
+    const {orgSlug, projectSlug, hasAccess} = this.props;
     const {filterList} = this.state;
 
-    const projectEndpoint = `/projects/${orgId}/${projectId}/`;
+    const projectEndpoint = `/projects/${orgSlug}/${projectSlug}/`;
     const filtersEndpoint = `${projectEndpoint}filters/`;
 
     return (
-      <Panel>
-        <PanelHeader>{t('Filters')}</PanelHeader>
-        <PanelBody>
-          {filterList.map(filter => {
-            const fieldProps = {
-              name: filter.id,
-              label: filter.name,
-              help: filter.description,
-              disabled: !hasAccess,
-            };
+      <React.Fragment>
+        <SettingsPageHeader title={t('Inbound Data Filters')} />
+        <TextBlock>
+          {t(
+            'Filters allow you to prevent Sentry from storing events in certain situations. Filtered events are tracked separately from rate limits, and do not apply to any project quotas.'
+          )}
+        </TextBlock>
+        <Panel>
+          <PanelHeader>{t('Filters')}</PanelHeader>
+          <PanelBody>
+            {filterList.map(filter => {
+              const fieldProps = {
+                name: filter.id,
+                label: filter.name,
+                help: filter.description,
+                disabled: !hasAccess,
+              };
 
-            // Note by default, forms generate data in the format of:
-            // { [fieldName]: [value] }
-            // Endpoints for these filters expect data to be:
-            // { 'active': [value] }
-            return (
-              <PanelItem key={filter.id} p={0}>
-                <NestedForm
-                  apiMethod="PUT"
-                  apiEndpoint={`${filtersEndpoint}${filter.id}/`}
-                  initialData={{[filter.id]: filter.active}}
-                  saveOnBlur
-                >
-                  {filter.id !== 'legacy-browsers' ? (
-                    <FieldFromConfig
-                      key={filter.id}
-                      getData={data => ({active: data[filter.id]})}
-                      field={{
-                        type: 'boolean',
-                        ...fieldProps,
-                      }}
-                    />
-                  ) : (
-                    <FormField
-                      inline={false}
-                      {...fieldProps}
-                      getData={data => ({subfilters: [...data[filter.id]]})}
-                    >
-                      {({onChange, onBlur}) => (
-                        <LegacyBrowser
-                          key={filter.id}
-                          data={filter}
-                          disabled={!hasAccess}
-                          onToggle={this.handleLegacyChange.bind(this, onChange, onBlur)}
-                        />
-                      )}
-                    </FormField>
-                  )}
-                </NestedForm>
-              </PanelItem>
-            );
-          })}
-        </PanelBody>
-      </Panel>
+              // Note by default, forms generate data in the format of:
+              // { [fieldName]: [value] }
+              // Endpoints for these filters expect data to be:
+              // { 'active': [value] }
+              return (
+                <PanelItem key={filter.id} p={0}>
+                  <NestedForm
+                    apiMethod="PUT"
+                    apiEndpoint={`${filtersEndpoint}${filter.id}/`}
+                    initialData={{[filter.id]: filter.active}}
+                    saveOnBlur
+                  >
+                    {filter.id !== 'legacy-browsers' ? (
+                      <FieldFromConfig
+                        key={filter.id}
+                        getData={data => ({active: data[filter.id]})}
+                        field={{
+                          type: 'boolean',
+                          ...fieldProps,
+                        }}
+                      />
+                    ) : (
+                      <FormField
+                        inline={false}
+                        {...fieldProps}
+                        getData={data => ({subfilters: [...data[filter.id]]})}
+                      >
+                        {({onChange, onBlur}) => (
+                          <LegacyBrowser
+                            key={filter.id}
+                            data={filter}
+                            disabled={!hasAccess}
+                            onToggle={this.handleLegacyChange.bind(
+                              this,
+                              onChange,
+                              onBlur
+                            )}
+                          />
+                        )}
+                      </FormField>
+                    )}
+                  </NestedForm>
+                </PanelItem>
+              );
+            })}
+          </PanelBody>
+        </Panel>
+      </React.Fragment>
     );
   }
 }

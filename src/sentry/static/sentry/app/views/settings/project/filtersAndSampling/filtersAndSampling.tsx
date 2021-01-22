@@ -17,8 +17,14 @@ type Props = {
 function FiltersAndSampling({project, organization, hasAccess}: Props) {
   return (
     <SentryDocumentTitle title={t('Filters & Sampling')} objSlug={project.id}>
-      <Filters projectId={project.id} orgId={organization.id} hasAccess={hasAccess} />
-      <Sampling project={project} organization={organization} hasAccess={hasAccess} />
+      <React.Fragment>
+        <Filters
+          projectSlug={project.slug}
+          orgSlug={organization.slug}
+          hasAccess={hasAccess}
+        />
+        <Sampling project={project} organization={organization} hasAccess={hasAccess} />
+      </React.Fragment>
     </SentryDocumentTitle>
   );
 }

@@ -1,7 +1,6 @@
 import {t} from 'app/locale';
 
 import Form from './form';
-import {Category} from './utils';
 
 type Props = Form['props'];
 
@@ -17,16 +16,6 @@ class ErrorRuleModal extends Form<Props, State> {
       label: t('Error'),
       help: t('This is a description'),
     };
-  }
-
-  getCategoryOptions() {
-    return [
-      [Category.RELEASES, t('Releases')],
-      [Category.BROWSER_EXTENSIONS, t('Browser Extensions')],
-      [Category.LOCALHOST, t('Localhost')],
-      [Category.WEB_CRAWLERS, t('Web Crawlers')],
-      [Category.LEGACY_BROWSERS, t('Legacy Browsers')],
-    ] as Array<[string, string]>;
   }
 }
 

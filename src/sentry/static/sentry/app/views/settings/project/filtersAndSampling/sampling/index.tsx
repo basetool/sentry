@@ -12,6 +12,7 @@ import {
   DynamicSamplingRules,
   DynamicSamplingRuleType,
 } from 'app/types/dynamicSampling';
+import SettingsPageHeader from 'app/views/settings/components/settingsPageHeader';
 import TextBlock from 'app/views/settings/components/text/textBlock';
 import PermissionAlert from 'app/views/settings/organization/permissionAlert';
 
@@ -169,7 +170,7 @@ class Sampling extends AsyncComponent<Props, State> {
     return (
       <React.Fragment>
         <PermissionAlert />
-
+        <SettingsPageHeader title={t('Dynamic Sampling')} />
         <TextBlock>
           {platformDocLink
             ? tct(

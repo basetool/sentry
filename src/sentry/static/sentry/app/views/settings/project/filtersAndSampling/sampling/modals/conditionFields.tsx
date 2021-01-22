@@ -15,9 +15,14 @@ type Condition = {
   match: string;
 };
 
+const categoryOptions = [
+  [Category.RELEASES, t('Releases')],
+  [Category.ENVIROMENTS, t('Enviroments')],
+  [Category.USERS, t('Users')],
+];
+
 type Props = {
   conditions: Array<Condition>;
-  categoryOptions: Array<[string, string]>;
   onAdd: () => void;
   onDelete: (index: number) => () => void;
   onChange: <T extends keyof Condition>(
@@ -27,13 +32,7 @@ type Props = {
   ) => void;
 };
 
-function ConditionFields({
-  conditions,
-  categoryOptions,
-  onAdd,
-  onDelete,
-  onChange,
-}: Props) {
+function ConditionFields({conditions, onAdd, onDelete, onChange}: Props) {
   return (
     <React.Fragment>
       {conditions.map(({match, category}, index) => {
