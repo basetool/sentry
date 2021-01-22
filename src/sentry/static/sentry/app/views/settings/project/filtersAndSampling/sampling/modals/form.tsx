@@ -167,7 +167,6 @@ class Form<P extends Props = Props, S extends State = State> extends React.Compo
               onAdd={this.handleAddCondition}
               onChange={this.handleChangeCondition}
               onDelete={this.handleDeleteCondition}
-              // showLegacyBrowsersField={Category}
             />
           )}
           <NumberField

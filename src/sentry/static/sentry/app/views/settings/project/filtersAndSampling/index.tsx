@@ -1,6 +1,7 @@
 import React from 'react';
 import {RouteComponentProps} from 'react-router';
 
+import Access from 'app/components/acl/access';
 import Feature from 'app/components/acl/feature';
 import FeatureDisabled from 'app/components/acl/featureDisabled';
 import {PanelAlert} from 'app/components/panels';
@@ -26,7 +27,15 @@ const Index = ({organization, ...props}: Props) => (
       />
     )}
   >
-    <FiltersAndSampling {...props} organization={organization} />
+    <Access organization={organization} access={['project:write']}>
+      {({hasAccess}) => (
+        <FiltersAndSampling
+          {...props}
+          organization={organization}
+          hasAccess={hasAccess}
+        />
+      )}
+    </Access>
   </Feature>
 );
 
