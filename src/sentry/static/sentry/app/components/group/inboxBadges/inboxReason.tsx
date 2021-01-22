@@ -5,6 +5,7 @@ import Tag from 'app/components/tag';
 import {getRelativeDate} from 'app/components/timeSince';
 import {t} from 'app/locale';
 import {InboxDetails, InboxReasonDetails} from 'app/types';
+import {getFormattedDate} from 'app/utils/dates';
 import {getDuration} from 'app/utils/formatters';
 
 const GroupInboxReason = {
@@ -30,7 +31,7 @@ function InboxReason({inbox, fontSize = 'sm'}: Props) {
       ? `More than ${Math.round(count / EVENT_ROUND_LIMIT)}k`
       : `${count}`;
 
-  const getToolTipDescription = ({
+  const getTooltipDescription = ({
     until,
     count,
     window,
@@ -39,12 +40,12 @@ function InboxReason({inbox, fontSize = 'sm'}: Props) {
   }: InboxReasonDetails) => {
     if (until) {
       // Was ignored until `until` has passed.
-      //`until` format "2021-01-20T03:59:03+00:00"
+      //`until` format: "2021-01-20T03:59:03+00:00"
       return t('Was ignored until %(window)s', {
-        until,
+        until: getFormattedDate(until, 'YYYY/MM/DD HH:mm:ss', {local: true}),
       });
-    } 
-    
+    }
+
     if (count) {
       // Was ignored until `count` events occured
       // If `window` is defined, than `count` events occurred in `window` minutes.
@@ -54,8 +55,8 @@ function InboxReason({inbox, fontSize = 'sm'}: Props) {
         window: window ? ' in ' + getDuration((window || 0) * 60, 0, true) : '',
       });
     }
-    
-      if (user_count) {
+
+    if (user_count) {
       // Was ignored until `user_count` users were affected
       // If `user_window` is defined, than `user_count` users affected in `user_window` minutes.
       // else `user_count` events occured since it was ignored.
@@ -65,10 +66,9 @@ function InboxReason({inbox, fontSize = 'sm'}: Props) {
           ? ' in ' + getDuration((user_window || 0) * 60, 0, true)
           : '',
       });
-    } 
-    
-   return ''; // Shouldn't happen, but wasn't sure of a safe fallback.
     }
+
+    return undefined;
   };
 
   function getReasonDetails(): {
@@ -87,7 +87,7 @@ function InboxReason({inbox, fontSize = 'sm'}: Props) {
             t('Unignored %(relative)s', {
               relative: getRelativeDate(dateAdded, 'ago', true),
             }),
-          tooltipDescription: getToolTipDescription(reason_details),
+          tooltipDescription: getTooltipDescription(reason_details),
         };
       case GroupInboxReason.REGRESSION:
         return {
